@@ -97,43 +97,43 @@ class Curve(object):
         self.name = name
     
     
-    def __add__(a, b):
+    def __add__(self, b):
         c = Curve('', '')
-        c.drawstyle = a.drawstyle
-        c.plotname = str(a.plotname + ' + ' + b.plotname + ' ').strip('  ')
-        ia, ib = getinterp(a, b)
+        c.drawstyle = self.drawstyle
+        c.plotname = str(f'{self.plotname} + {b.plotname} ').strip('  ')
+        ia, ib = getinterp(self, b)
         if ia.x is not None and ib.x is not None:
             c.x = ia.x
             c.y = ia.y + ib.y
         return c
 
     
-    def __sub__(a, b):
+    def __sub__(self, b):
         c = Curve('', '')
-        c.drawstyle = a.drawstyle
-        c.plotname = str(a.plotname + ' - ' + b.plotname + ' ').strip('  ')
-        ia, ib = getinterp(a, b)
+        c.drawstyle = self.drawstyle
+        c.plotname = str(f'{self.plotname} - {b.plotname} ').strip('  ')
+        ia, ib = getinterp(self, b)
         if ia.x is not None and ib.x is not None:
             c.x = ia.x
             c.y = ia.y - ib.y
         return c
     
     
-    def __mul__(a, b):
+    def __mul__(self, b):
         c = Curve('', '')
-        c.drawstyle = a.drawstyle
-        c.plotname = str(a.plotname + ' * ' + b.plotname + ' ').strip('  ')
-        ia, ib = getinterp(a, b)
+        c.drawstyle = self.drawstyle
+        c.plotname = str(f'{self.plotname} * {b.plotname} ').strip('  ')
+        ia, ib = getinterp(self, b)
         if ia.x is not None and ib.x is not None:
             c.x = ia.x
             c.y = ia.y * ib.y
         return c
 
-    def __div__(a, b):
+    def __div__(self, b):
         c = Curve('', '')
-        c.drawstyle = a.drawstyle
-        c.plotname = str(a.plotname + ' / ' + b.plotname + ' ').strip('  ')
-        ia, ib = getinterp(a, b)
+        c.drawstyle = self.drawstyle
+        c.plotname = str(f'{self.plotname} / {b.plotname} ').strip('  ')
+        ia, ib = getinterp(self, b)
         if ia.x is not None and ib.x is not None:
             c.x = ia.x
 
@@ -147,11 +147,11 @@ class Curve(object):
 
         return c
 
-    def __truediv__(a,b):
+    def __truediv__(self, b):
         c = Curve('', '')
-        c.drawstyle = a.drawstyle
-        c.plotname = str(a.plotname + ' / ' + b.plotname + ' ').strip('  ')
-        ia, ib = getinterp(a, b)
+        c.drawstyle = self.drawstyle
+        c.plotname = str(f'{self.plotname} / {b.plotname} ').strip('  ')
+        ia, ib = getinterp(self, b)
         if ia.x is not None and ib.x is not None:
             c.x = ia.x
 
@@ -165,23 +165,23 @@ class Curve(object):
 
         return c
     
-    def __pow__(a, b):
+    def __pow__(self, b):
         c = Curve('', '')
-        c.drawstyle = a.drawstyle
-        c.plotname = str(a.plotname + '^' + str(b)).strip('  ')
-        c.x = np.array(a.x)
-        c.y = np.power(a.y, b)
+        c.drawstyle = self.drawstyle
+        c.plotname = str(f'{self.plotname}^{str(b)}').strip('  ')
+        c.x = np.array(self.x)
+        c.y = np.power(self.y, b)
         nans = np.isnan(c.y)    #remove NaNs
         c.x = c.x[~nans]
         c.y = c.y[~nans]
         return c
         
-    def __neg__(a):
+    def __neg__(self):
         c = Curve('', '')
-        c.drawstyle = a.drawstyle
-        c.plotname = str('-' + a.plotname)
-        c.x = np.array(a.x)
-        c.y = np.array(-a.y)
+        c.drawstyle = self.drawstyle
+        c.plotname = str(f'-{self.plotname}')
+        c.x = np.array(self.x)
+        c.y = np.array(-self.y)
         return c
    
     
@@ -211,7 +211,7 @@ class Curve(object):
         c.xlabel = self.xlabel
         c.ylabel = self.ylabel
         c.title = self.title
-        
+
         return c
 
     ##return a new normalized copy of the curve object##
@@ -223,7 +223,7 @@ class Curve(object):
             return c
 
         c.y /= float(norm)
-        c.name = "Normalized %s" % self.plotname
+        c.name = f"Normalized {self.plotname}"
         return c
 
 
@@ -244,9 +244,7 @@ def getinterp(a, b, left=None, right=None, samples=100, match='domain'):
     :returns: curve pair -- the interpolated and domain matched versions of a and b
     """
     if match == 'domain':
-        ux = list(set(a.x).union(set(b.x)))  #get union of xvals
-        ux.sort()
-
+        ux = sorted(set(a.x).union(set(b.x)))
         ia = a.copy()
         ia.x = np.array(ux)
         ia.y = np.interp(ux, a.x, a.y, left, right) # interpolate y vals
@@ -260,9 +258,7 @@ def getinterp(a, b, left=None, right=None, samples=100, match='domain'):
         ax, step = np.linspace(min(a.x), max(a.x), num=samples, retstep=True)
 
         bxsamples = int((max(b.x) - min(b.x)) / step)
-        if bxsamples < 1:
-            bxsamples = 1
-
+        bxsamples = max(bxsamples, 1)
         bx = np.linspace(min(b.x), max(b.x), bxsamples)
 
         ia = a.copy()
@@ -275,7 +271,7 @@ def getinterp(a, b, left=None, right=None, samples=100, match='domain'):
 
         return ia, ib
     else:
-        raise ValueError("{} is not a supported option for match".format(match))
+        raise ValueError(f"{match} is not a supported option for match")
 
 
 def interp1d(a, num=100, retstep=False):
@@ -317,9 +313,7 @@ def append(a, b):
     :type b: curve
     :return: a new curve resulting from the merging of curve a and curve b
     """
-    ux = list(set(a.x).union(set(b.x)))  #get union of xvals
-    ux.sort()
-
+    ux = sorted(set(a.x).union(set(b.x)))
     aub = Curve('','')
     aub.x = np.array(ux)
     aub.y = np.zeros(len(aub.x))

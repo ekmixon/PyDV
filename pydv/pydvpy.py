@@ -120,14 +120,12 @@ def span(xmin, xmax, numpts=100):
     spacing = (float(xmax) - float(xmin)) / (float(numpts) - 1.0)
     fxmin = float(xmin)
     x = []
-    for i in range(numpts):
+    for _ in range(numpts):
         x.append(fxmin)
         fxmin += spacing
     x = np.array(x)
     y = np.array(x)
-    c = makecurve(x, y, 'Straight Line')
-
-    return c
+    return makecurve(x, y, 'Straight Line')
 
 
 def makecurve(x, y, name='Curve', fname='', xlabel='', ylabel='', title=''):
@@ -164,10 +162,7 @@ def get_styles():
 
     :return: list -- the list of available style names or an empty list if no styles exist.
     """
-    if stylesLoaded:
-        return plt.style.available
-
-    return list()
+    return plt.style.available if stylesLoaded else []
 
 
 def create_plot(curvelist, **kwargs):
@@ -211,29 +206,29 @@ def create_plot(curvelist, **kwargs):
 
     # Process kwargs
     for key, val in list(kwargs.items()):
-        if key == 'fname':
+        if key == 'fheight':
+            fheight = val
+
+        elif key == 'fname':
             fname = val
         elif key == 'ftype':
             ftype = val
-        elif key == 'title':
-            title = val
-        elif key == 'xlabel':
-            xlabel = val
-        elif key == 'ylabel':
-            ylabel = val
+        elif key == 'fwidth':
+            fwidth = val
         elif key == 'legend':
             legend = val
         elif key == 'stylename':
             stylename = val
+        elif key == 'title':
+            title = val
+        elif key == 'xlabel':
+            xlabel = val
         elif key == 'xls':
             xls = val
+        elif key == 'ylabel':
+            ylabel = val
         elif key == 'yls':
             yls = val
-        elif key == 'fwidth':
-            fwidth = val
-        elif key == 'fheight':
-            fheight = val
-
     if stylesLoaded:
         styles = get_styles()
 
@@ -253,7 +248,7 @@ def create_plot(curvelist, **kwargs):
     if(yls):
         axis.set_yscale('log', nonposy='clip')
 
-    curves = list()
+    curves = []
 
     if isinstance(curvelist, list):
         curves.extend(curvelist)
@@ -319,9 +314,9 @@ def create_plot(curvelist, **kwargs):
 
     if fname is not None:
         try:
-            plt.savefig(fname + '.' + ftype, format=ftype)
+            plt.savefig(f'{fname}.{ftype}', format=ftype)
         except:
-            print('Error: Could not save image to ' + fname + ' of type ' + ftype)
+            print(f'Error: Could not save image to {fname} of type {ftype}')
 
     return plt
 
@@ -345,7 +340,7 @@ def save(fname, curvelist, verbose=False):
     :param verbose: prints the error stacktrace when True
     :type verbose: bool
     """
-    curves = list()
+    curves = []
 
     if isinstance(curvelist, list):
         curves.extend(curvelist)
@@ -355,11 +350,11 @@ def save(fname, curvelist, verbose=False):
     try:
         f = open(fname, 'w')
         for curve in curves:
-            f.write('# ' + curve.name + '\n')
+            f.write(f'# {curve.name}' + '\n')
             for dex in range(len(curve.x)):
-                f.write(' ' + str(curve.x[dex]) + ' ' + str(curve.y[dex]) + '\n')
+                f.write(f' {str(curve.x[dex])} {str(curve.y[dex])}' + '\n')
     except:
-        print('Error: Can not write to: ' + fname)
+        print(f'Error: Can not write to: {fname}')
         if verbose:
             traceback.print_exc(file=sys.stdout)
     finally:
@@ -385,7 +380,7 @@ def savecsv(fname, curvelist, verbose=False):
     :param verbose: prints the error stacktrace when True
     :type verbose: bool
     """
-    curves = list()
+    curves = []
 
     if isinstance(curvelist, list):
         curves.extend(curvelist)
@@ -396,17 +391,17 @@ def savecsv(fname, curvelist, verbose=False):
         f = open(fname, 'w')
         s = '# time'
         for curve in curves:
-            s += ', ' + curve.name
+            s += f', {curve.name}'
         s += '\n'
         f.write(s)
         for i in range(len(curvelist[0].x)):
             s = str(curvelist[0].x[i])
             for j in range(len(curvelist)):
-                s += ', ' + str(curvelist[j].y[i])
+                s += f', {str(curvelist[j].y[i])}'
             s += '\n'
             f.write(s)
     except:
-        print('Error: Can not write to: ' + fname)
+        print(f'Error: Can not write to: {fname}')
         if verbose:
             traceback.print_exc(file=sys.stdout)
     finally:

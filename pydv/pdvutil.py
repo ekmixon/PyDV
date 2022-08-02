@@ -79,12 +79,12 @@ def parsemath(line, plotlist, commander, xdomain):
     sendline = ''
     for val in line:
         dex = None
-        if(val[0] == '@'): # are we a curve labeled @N, i.e., beyond a-z?
+        if (val[0] == '@'): # are we a curve labeled @N, i.e., beyond a-z?
             dex = int(val[1:]) + 1
-            sendline += ' plotlist['+str(dex)+'] '
-        elif(len(val) == 1 and ord(val.upper()) <= ord('Z') and ord(val.upper()) >= ord('A')): # or a curve a-z?
+            sendline += f' plotlist[{str(dex)}] '
+        elif (len(val) == 1 and ord(val.upper()) <= ord('Z') and ord(val.upper()) >= ord('A')): # or a curve a-z?
             dex = ord(val.upper()) - ord('A')
-            sendline += ' plotlist['+ str(dex) +'] '
+            sendline += f' plotlist[{str(dex)}] '
         else:                                         # no?, then just insert the operation (+,-,*,/, etc)
             sendline += val
     sendline = sendline.lstrip()
@@ -108,22 +108,21 @@ def parsemath(line, plotlist, commander, xdomain):
 def getnumberargs(line, filelist):
     line = line.split(':')
     arglist = ''
-    if(len(line) > 1):
+    if (len(line) > 1):
         for i in range(len(line)):
             line[i] = line[i].strip()
-        if(len(line[0].split()) > 1):   #check for non list args
+        if (len(line[0].split()) > 1):   #check for non list args
             nolist = line[0].split()
             nolist.pop(-1)
             nolist = ' '.join(nolist)
-            arglist += nolist + ' '
+            arglist += f'{nolist} '
         for i in range(len(line)-1):
-            if(i > 0):
-                if(len(line[i].split()) > 2):   #check for non list args
-                    nolist = line[i].split()
-                    nolist.pop(-1)
-                    nolist.pop(0)
-                    nolist = ' '.join(nolist)
-                    arglist += nolist + ' '
+            if (i > 0) and (len(line[i].split()) > 2):
+                nolist = line[i].split()
+                nolist.pop(-1)
+                nolist.pop(0)
+                nolist = ' '.join(nolist)
+                arglist += f'{nolist} '
             start = line[i].split()[-1]
             end = line[i+1].split()[0]
             if(len(start.split('.')) > 1):
@@ -138,20 +137,19 @@ def getnumberargs(line, filelist):
                 if(filedex != 0):
                     for f in range(filedex):
                         end = str(int(end) + filelist[f][1])
-            args = ''
             delta = int(end) - int(start)
-            if delta >= 0:
-                step = 1
-            else:
-                step = -1
-            for j in range(int(start), int(start) + delta + step, step):
-                args += str(j) + ' '
-            arglist += args + ' '
-        if(len(line[-1].split()) > 1):   #check for non list args
+            step = 1 if delta >= 0 else -1
+            args = ''.join(
+                f'{str(j)} '
+                for j in range(int(start), int(start) + delta + step, step)
+            )
+
+            arglist += f'{args} '
+        if (len(line[-1].split()) > 1):   #check for non list args
             nolist = line[-1].split()
             nolist.pop(0)
             nolist = ' '.join(nolist)
-            arglist += nolist + ' '
+            arglist += f'{nolist} '
     return arglist
 
 
@@ -168,47 +166,38 @@ def getletterargs(line):
             nolist = line[0].split()
             nolist.pop(-1)
             nolist = ' '.join(nolist)
-            arglist += nolist + ' '
+            arglist += f'{nolist} '
 
         for i in range(len(line)-1):
-            if i > 0:
-                # check for non list args
-                if len(line[i].split()) > 2:
-                    nolist = line[i].split()
-                    nolist.pop(-1)
-                    nolist.pop(0)
-                    nolist = ' '.join(nolist)
-                    arglist += nolist + ' '
+            if i > 0 and len(line[i].split()) > 2:
+                nolist = line[i].split()
+                nolist.pop(-1)
+                nolist.pop(0)
+                nolist = ' '.join(nolist)
+                arglist += f'{nolist} '
 
             start = line[i].split()[-1].upper()
 
-            if start[0] == '@':
-                start = int(start[1:]) - 1
-            else:
-                start = ord(start[0]) - ord('A')
-
+            start = int(start[1:]) - 1 if start[0] == '@' else ord(start[0]) - ord('A')
             end = line[i+1].split()[0].upper()
 
-            if end[0] == '@':
-                end = int(end[1:]) - 1
-            else:
-                end = ord(end[0]) - ord('A')
+            end = int(end[1:]) - 1 if end[0] == '@' else ord(end[0]) - ord('A')
+            args = ''.join(
+                f'@{str(j+int(start)+1)} '
+                if j + int(start) > 25
+                else chr(j + int(start) + ord('A')) + ' '
+                for j in range((int(end) - int(start)) + 1)
+            )
 
-            args = ''
-            for j in range((int(end)-int(start))+1):
-                if j+int(start) > 25:
-                    args += '@' + str(j+int(start)+1) + ' '
-                else:
-                    args += chr(j+int(start) + ord('A')) + ' '
-            arglist += args + ''
+            arglist += f'{args}'
 
         # check for non list args
         if len(line[-1].split()) > 1:
             nolist = line[-1].split()
             nolist.pop(0)
             nolist = ' '.join(nolist)
-            arglist += nolist + ' '  #end arduous list parsing
-            
+            arglist += f'{nolist} '
+
     return arglist
 
 
@@ -221,8 +210,4 @@ def truncate(string, size):
 
 
 def get_actual_index(origref, val):
-    for i in range(len(origref)):
-        if origref[i] == val:
-            return i
-
-    return -1
+    return next((i for i in range(len(origref)) if origref[i] == val), -1)

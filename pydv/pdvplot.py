@@ -186,13 +186,11 @@ class Plotter(QMainWindow):
         """
         Updates the list and menu dialogs if visible.
         """
-        if self._listDialog is not None:
-            if self._listDialog.isVisible():
-                self._listAction.trigger()
+        if self._listDialog is not None and self._listDialog.isVisible():
+            self._listAction.trigger()
 
-        if self._menuDialog is not None:
-            if self._menuDialog.isVisible():
-                self._menuAction.trigger()
+        if self._menuDialog is not None and self._menuDialog.isVisible():
+            self._menuAction.trigger()
 
     ########################################################################################################
     # SLOTS
@@ -242,7 +240,7 @@ class Plotter(QMainWindow):
             prefix = ''
             if c.edited:
                 prefix = '*'
-            plotnameItem = QTableWidgetItem(self.tr("%s%s" % (prefix, c.plotname)))
+            plotnameItem = QTableWidgetItem(self.tr(f"{prefix}{c.plotname}"))
             plotnameItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
             self._tableWidget.setItem(row, col, plotnameItem)
             col += 1
@@ -279,9 +277,7 @@ class Plotter(QMainWindow):
             row += 1
 
         maxrows = rows
-        if rows > 10:
-            maxrows = 10
-
+        maxrows = min(maxrows, 10)
         if not refresh:
             # Layout
             vbox = QVBoxLayout(self._listDialog)
@@ -311,7 +307,7 @@ class Plotter(QMainWindow):
         if not self._listDialog.isVisible():
             self._listDialog.show()
 
-    @Slot() 
+    @Slot()
     def showMenuDialog(self):
         """
         Shows a dialog with the output of the menu command in a table.
@@ -396,9 +392,7 @@ class Plotter(QMainWindow):
             row += 1
 
         maxrows = rows
-        if rows > 10:
-            maxrows = 10
-
+        maxrows = min(maxrows, 10)
         if not refresh:
             # Layout
             vbox = QVBoxLayout(self._menuDialog)
@@ -538,10 +532,10 @@ class Plotter(QMainWindow):
                 plotnames = str()
                 for index in self._tableWidget.selectionModel().selectedRows():
                     row = index.row()
-                    plotnames += "%s " % self._pydvcmd.plotlist[row].plotname
+                    plotnames += f"{self._pydvcmd.plotlist[row].plotname} "
 
-                print("delete %s" % plotnames)
-                self._pydvcmd.do_delete("%s" % plotnames)
+                print(f"delete {plotnames}")
+                self._pydvcmd.do_delete(f"{plotnames}")
 
             self._pydvcmd.updateplot
 
@@ -559,8 +553,8 @@ class Plotter(QMainWindow):
                     row = index.row()
                     menuindexes += "%d " % (row+1)
 
-                print("kill %s" % menuindexes)
-                self._pydvcmd.do_kill("%s" % menuindexes)
+                print(f"kill {menuindexes}")
+                self._pydvcmd.do_kill(f"{menuindexes}")
 
 
     def __plotMenuCurve(self):
@@ -573,8 +567,8 @@ class Plotter(QMainWindow):
                 row = index.row()
                 plotnames += " %d" % (row+1)
 
-            print("curve%s" % plotnames)
-            self._pydvcmd.do_curve("%s" % plotnames)
+            print(f"curve{plotnames}")
+            self._pydvcmd.do_curve(f"{plotnames}")
             self._pydvcmd.updateplot
 
     def __setgeometry(self):
